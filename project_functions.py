@@ -5,7 +5,7 @@ import os
 import curses
 
 
-def open_dataframes(path):
+def open_dataframes(path):  # Karolina
     if not os.path.exists(path):
         fieldnames = ['name_of_df', 'csv_path', 'total_records', 'time_added']
         with open('dataframes', mode='w', newline='') as csvfile:
@@ -13,7 +13,7 @@ def open_dataframes(path):
             writer.writeheader()
 
 
-def show_latest():
+def show_latest():  #Olesia
     reader = read_csv('dataframes')
     reader = sorted(reader, key=lambda row: row['time_added'], reverse=True)
     show_num = len(reader) if len(reader) < 3 else 3
@@ -25,7 +25,7 @@ def show_latest():
                 f'{i + 1}) Datasourse: {reader[i]['name_of_df']} | {choose_latest_year(reader[i]['csv_path'])} GPM: {calc_gpm(reader[i]['csv_path'], choose_latest_year(reader[i]['csv_path']))} %')
 
 
-def get_path():
+def get_path(): #Karolina
     path = input('Enter the path of the csv file: \n>>').strip().strip('""')
     while not os.path.exists(path) or not path.lower().endswith('.csv'):
         path = input('Invalid path or file type not csv. Enter the path of the csv file: \n>>').strip().strip('""')
@@ -48,7 +48,7 @@ def get_path():
         return path
 
 
-def read_csv(path):  # returns a DictReader of type list
+def read_csv(path):  # returns a DictReader of type list   # Liza
     df = pd.read_csv(path, index_col=False)
     df.columns = df.columns.str.strip()
     df.to_csv(path, index=False)
@@ -57,7 +57,7 @@ def read_csv(path):  # returns a DictReader of type list
     return reader
 
 
-def note_file(path_of_file):
+def note_file(path_of_file):  # Karolina
     df = pd.read_csv(path_of_file, index_col=False)
     total_records = len(df)
     time_added = datetime.now()
@@ -73,7 +73,7 @@ def note_file(path_of_file):
         })
 
 
-def display_structure(path):
+def display_structure(path): # Liza
     df = pd.read_csv(path, index_col=False)
     records = len(df)
     print('records: ', records)
@@ -89,14 +89,14 @@ def display_structure(path):
             print(f'{l_col[ind]} | ', end='')
 
 
-def choose_latest_year(path):  # -> year
+def choose_latest_year(path):  # -> year # Liza
     df = pd.read_csv(path, index_col=False, parse_dates=['date'])
     df.sort_values(by='date', ascending=False, inplace=True)
     date = df['date'].iloc[0]
     return date.year
 
 
-def calc_gpm(path, year: int):
+def calc_gpm(path, year: int): # Liza
     df = pd.read_csv(path, index_col=False, parse_dates=['date'])
     df.columns = df.columns.str.strip()
     df['grossProfitcalc'] = df['revenue'] - df['costOfRevenue']
@@ -114,7 +114,7 @@ def calc_gpm(path, year: int):
         return round(df[df['date'].dt.year == year]['grossProfitMargin'].iloc[0], 2)
 
 
-def get_csv_curses(stdscr):
+def get_csv_curses(stdscr):  #Olesia
     df = pd.read_csv('dataframes')
     csvs = list(df['name_of_df'])
     # Initial setup
