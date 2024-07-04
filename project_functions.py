@@ -13,7 +13,7 @@ def open_dataframes(path):
 
 
 def show_latest(path):
-    reader = read_csv('dataframes')
+    reader = read_csv(path)
     reader = sorted(reader, key=lambda row: row['time_added'], reverse=True)
     show_num = len(reader) if len(reader) < 3 else 3
     if show_num == 0:
