@@ -24,16 +24,19 @@ def show_latest(path):
 
 
 def get_path():
-    pass
-    # get the path and validate it with the next finction
+    path = input('Enter the path of the csv file: \n>>').strip().strip('""')
+    while not os.path.exists(path):
+        path = input('Enter the path of the csv file: \n>>').strip().strip('""')
+
+    return path
 
 
-def validate_path(path):
-    pass
-    # validate the path the user is giving you 1) if it exists 2) if it contains columns wu need for calculations
 
 
 def read_csv(path):  # returns a DictReader of type list
+    df = pd.read_csv(path, index_col=False)
+    df.columns=df.columns.str.strip()
+    df.to_csv(path, index= False)
     with open(path, mode = 'r', newline='') as csvfile:
         reader = list(csv.DictReader(csvfile))
     return reader
@@ -44,15 +47,23 @@ def note_file(path_of_file, note_to_df):
     # after validating the path you should get the needed info from the file (records, metric)
 #   and write this in the 'dataframes' file
 
-def calc_gpm(path):
-    pass
-    # firstly read csv (with the function above) and try to calculate a gpm of it
 
+def calc_gpm(path, year: int):
+    df = pd.read_csv(path, index_col = False, parse_dates = ['date'])
+    df.columns = df.columns.str.strip()
+    df['grossProfitcalc'] = df['revenue'] - df['costOfRevenue']
+    df.loc[df['revenue']<10, 'revenue'] = None
+    df.loc[df['costOfRevenue'] < 10, 'costOfRevenue'] = None
+    if len(df[df['revenue'].isna()|df['costOfRevenue'].isna()]) != 0:
+        print('Invalid values found. Handling the file...')
+        df.dropna(subset = ['revenue'], inplace = True)
+        df.dropna(subset = ['costOfRevenue'], inplace = True)
 
-def show_gpm():
-    pass
-    # it shows the gpm of the dataframe
-    # it just receives this info from 'dataframes', this function does not calculate it
+    df['grossProfitMargin'] = (df['grossProfitcalc'] / df['revenue']) * 100
+    if year not in list(df.date.dt.year):
+        print('No data')
+    else:
+        return df.loc[df['date'].dt.year == year, 'grossProfitMargin']
 
 
 def menu():
@@ -81,5 +92,10 @@ def menu():
             print('Invalid input!')
 
 
-if __name__ == '__main__':
-    menu()
+# if __name__ == '__main__':
+#     menu()
+
+print(read_csv("C:\\Users\\Olesia\\Desktop\\incomeStatement-GOOG-annual (1).csv"))
+print(calc_gpm(path = "C:\\Users\\Olesia\\Desktop\\incomeStatement-GOOG-annual (1).csv", year = 2021))
+df = pd.read_csv(get_path())
+print(df)
