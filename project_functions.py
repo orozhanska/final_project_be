@@ -27,8 +27,13 @@ def get_path():
     path = input('Enter the path of the csv file: \n>>').strip().strip('""')
     while not os.path.exists(path):
         path = input('Enter the path of the csv file: \n>>').strip().strip('""')
-
-    return path
+    df = pd.read_csv(path, index_col=False)
+    if 'revenue' not in df.columns:
+        print('Not enough data in the csv. \'revenue\' needed')
+    elif 'costOfRevenue' not in df.columns:
+        print('Not enough data in the csv. \'costOfRevenue\' needed')
+    else:
+        return path
 
 
 
@@ -95,7 +100,4 @@ def menu():
 # if __name__ == '__main__':
 #     menu()
 
-print(read_csv("C:\\Users\\Olesia\\Desktop\\incomeStatement-GOOG-annual (1).csv"))
-print(calc_gpm(path = "C:\\Users\\Olesia\\Desktop\\incomeStatement-GOOG-annual (1).csv", year = 2021))
-df = pd.read_csv(get_path())
-print(df)
+
