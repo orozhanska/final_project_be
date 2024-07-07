@@ -22,7 +22,7 @@ def show_latest():
     else:
         for i in range(show_num):
             print(
-                f'{i + 1}) Datasourse: {reader[i]['name_of_df']} | {choose_latest_year(reader[i]['csv_path'])} GPM: {calc_gpm(reader[i]['csv_path'], choose_latest_year(reader[i]['csv_path']))} %')
+                f'{i + 1}) Datasource: {reader[i]['name_of_df']} | {choose_latest_year(reader[i]['csv_path'])} GPM: {calc_gpm(reader[i]['csv_path'], choose_latest_year(reader[i]['csv_path']))} %')
 
 
 def get_path():
