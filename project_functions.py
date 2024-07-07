@@ -36,7 +36,7 @@ def get_path():  # Karolina
         path = input('Invalid path or file type not csv. Enter the path of the csv file: \n>>').strip().strip('""')
     dataframes = pd.read_csv('dataframes')
     csv_paths = list(dataframes['csv_path'])
-    while path in csv_paths:
+    while os.path.normpath(path) in csv_paths:
         print('Path already in system')
         path = input('Enter the path of the csv file: \n>>').strip().strip('""')
         while not os.path.exists(path) or not path.lower().endswith('.csv'):
