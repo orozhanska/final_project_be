@@ -13,7 +13,9 @@ def open_dataframes(path):  # Karolina
             writer.writeheader()
 
 
-def show_latest():  #Olesia
+# the show_latest takes the three latest added datasources and calculates the metric for each
+# the metric if for the latest year
+def show_latest():  # Olesia
     reader = read_csv('dataframes')
     reader = sorted(reader, key=lambda row: row['time_added'], reverse=True)
     show_num = len(reader) if len(reader) < 3 else 3
@@ -22,10 +24,13 @@ def show_latest():  #Olesia
     else:
         for i in range(show_num):
             print(
-                f'{i + 1}) Datasourse: {reader[i]['name_of_df']} | {choose_latest_year(reader[i]['csv_path'])} GPM: {calc_gpm(reader[i]['csv_path'], choose_latest_year(reader[i]['csv_path']))} %')
+                f'{i + 1}) Datasourсe: {reader[i]['name_of_df']} | {choose_latest_year(reader[i]['csv_path'])} GPM: '
+                f'{calc_gpm(reader[i]['csv_path'], choose_latest_year(reader[i]['csv_path']))} %')
 
 
-def get_path(): #Karolina
+# the get_path returns a path as a string. It validates user input for path
+# existence with os, it checks is the path is new and if it contains needed columns
+def get_path():  # Karolina
     path = input('Enter the path of the csv file: \n>>').strip().strip('""')
     while not os.path.exists(path) or not path.lower().endswith('.csv'):
         path = input('Invalid path or file type not csv. Enter the path of the csv file: \n>>').strip().strip('""')
@@ -45,10 +50,11 @@ def get_path(): #Karolina
     elif 'date' not in df.columns:
         print('Not enough data in the csv. \'date\' needed')
     else:
-        return path
+        return os.path.normpath(path)
 
 
 def read_csv(path):  # returns a DictReader of type list   # Liza
+    path = os.path.normpath(path)
     df = pd.read_csv(path, index_col=False)
     df.columns = df.columns.str.strip()
     df.to_csv(path, index=False)
@@ -57,10 +63,11 @@ def read_csv(path):  # returns a DictReader of type list   # Liza
     return reader
 
 
+# appends the data of the file to our internal datasource
 def note_file(path_of_file):  # Karolina
     df = pd.read_csv(path_of_file, index_col=False)
     total_records = len(df)
-    time_added = datetime.now()
+    time_added = datetime.now().isoformat()
 
     with open('dataframes', mode='a', newline='') as file:
         fieldnames = ['name_of_df', 'csv_path', 'total_records', 'time_added']
@@ -73,66 +80,61 @@ def note_file(path_of_file):  # Karolina
         })
 
 
-def display_structure(path): # Liza
+# the display_structure is for the 'adding a new ds' option
+# it chows the total number of records and the general overview of columns
+def display_structure(path):  # Liza
+    path = os.path.normpath(path)
     df = pd.read_csv(path, index_col=False)
     records = len(df)
     print('records: ', records)
-    col_to_show = len(list(df.columns)) if len(list(df.columns)) <= 5 else 3
-    l_col = list(df.columns)
-    if col_to_show == 3:
-        for ind in range(col_to_show):
-            print(f'{l_col[ind]} | ', end='')
-        print('... | ', end='')
-        print(l_col[-1])
+    if len(df.columns) > 5:
+        print(' | '.join(df.columns[:3]) + ' ... ' + df.columns[-1])
     else:
-        for ind in range(col_to_show):
-            print(f'{l_col[ind]} | ', end='')
+        print(' | '.join(df.columns))
 
 
-def choose_latest_year(path):  # -> year # Liza
+def choose_latest_year(path):  # -> Timestamp year # Liza
     df = pd.read_csv(path, index_col=False, parse_dates=['date'])
     df.sort_values(by='date', ascending=False, inplace=True)
     date = df['date'].iloc[0]
     return date.year
 
 
-def calc_gpm(path, year: int): # Liza
+def calc_gpm(path, year: int):  # Liza
+    path = os.path.normpath(path)
     df = pd.read_csv(path, index_col=False, parse_dates=['date'])
     df.columns = df.columns.str.strip()
-    df['grossProfitcalc'] = df['revenue'] - df['costOfRevenue']
-    df.loc[df['revenue'] < 10, 'revenue'] = None
-    df.loc[df['costOfRevenue'] < 10, 'costOfRevenue'] = None
-    if len(df[(df['revenue'].isna()) | (df['costOfRevenue'].isna())]) != 0:
-        print('Invalid values found. Handling the file...')
-        df.dropna(subset=['revenue'], inplace=True)
-        df.dropna(subset=['costOfRevenue'], inplace=True)
-
-    df['grossProfitMargin'] = (df['grossProfitcalc'] / df['revenue']) * 100
     if year not in list(df.date.dt.year):
-        print('No data')
+        print('No data for this year')
     else:
+        df['grossProfitcalc'] = df['revenue'] - df['costOfRevenue']
+        # validating the data
+        df.loc[df['revenue'] < 10, 'revenue'] = None
+        df.loc[df['costOfRevenue'] < 10, 'costOfRevenue'] = None
+        if len(df[(df['revenue'].isna()) | (df['costOfRevenue'].isna())]) != 0:
+            print('Invalid values found. Handling the file...')
+            df.dropna(subset=['revenue'], inplace=True)
+            df.dropna(subset=['costOfRevenue'], inplace=True)
+
+        df['grossProfitMargin'] = (df['grossProfitcalc'] / df['revenue']) * 100
         return round(df[df['date'].dt.year == year]['grossProfitMargin'].iloc[0], 2)
 
 
-def get_csv_curses(stdscr):  #Olesia
+# curses module for keyboard handling
+def get_csv_curses(stdscr):  # Olesia
     df = pd.read_csv('dataframes')
     csvs = list(df['name_of_df'])
-    # Initial setup
     current_index = 0
     num_files = len(csvs)
 
-    # Clear screen
     stdscr.clear()
 
     while True:
-        # Display instructions
         stdscr.addstr(0, 0, "Use arrow keys to select a data source. Press Enter to confirm. Press 'q' to quit.")
         stdscr.addstr(1, 0, f"Selected data source: {csvs[current_index]}")
 
-        # Refresh to display text
         stdscr.refresh()
 
-        # Wait for user input
         key = stdscr.getch()
 
         if key == curses.KEY_LEFT:
@@ -145,6 +147,7 @@ def get_csv_curses(stdscr):  #Olesia
             return None
 
 
+# main menu
 def menu():
     open_dataframes('dataframes')
     while True:
